@@ -18,8 +18,8 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     console.log("User connected " + socket.id);
-    socket.on("message", (msg, roomId) => {
-        io.to(roomId).emit('message', msg);
+    socket.on("message", (msg, roomId, username) => {
+        io.to(roomId).emit('message', msg, username);
     });
 
     socket.on("connectRoom", (roomId) => {
