@@ -5,6 +5,7 @@ import { createServer } from "http";
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const port = 3000;
 const server = createServer(app);
@@ -17,8 +18,12 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     console.log("User connected " + socket.id);
-    socket.on("message", (msg) => {
-        io.emit('message', msg);
+    socket.on("message", (msg, roomId) => {
+        io.to(roomId).emit('message', msg);
+    });
+
+    socket.on("connectRoom", (roomId) => {
+        socket.join(roomId);
     });
 });
 
