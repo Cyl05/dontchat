@@ -11,12 +11,19 @@ const ChatPage = () => {
     const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
 
     const { roomName } = useParams();
-    socket.emit("connectRoom", roomName);
+    socket.emit("connectRoom", roomName, username.username);
 
     React.useEffect(() => {
         socket.on("message", (msg, userName) => {
             setMessages((prev) => [...prev, [userName, msg]]);
         });
+
+        const handleBeforeUnload = () => {
+            socket.emit("client-leaving", username.username, roomName);
+            setTimeout(() => socket.disconnect(), 100); // Small delay to ensure event is sent
+        };        
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
 
         return () => {
             socket.off("message");

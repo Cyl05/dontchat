@@ -16,14 +16,26 @@ const io = new Server(server, {
     }
 });
 
+let rooms = {};
+
 io.on("connection", (socket) => {
-    console.log("User connected " + socket.id);
     socket.on("message", (msg, roomId, username) => {
         io.to(roomId).emit('message', msg, username);
     });
 
-    socket.on("connectRoom", (roomId) => {
+    socket.on("connectRoom", (roomId, username) => {
         socket.join(roomId);
+        if (!rooms[roomId]) {
+            rooms[roomId] = new Set();
+        }
+        rooms[roomId].add(username);
+    });
+
+    socket.on("client-leaving", (username, roomName) => {
+        rooms[roomName].delete(username);
+        if (rooms[roomName].size == 0) {
+            delete rooms[roomName];
+        }
     });
 });
 

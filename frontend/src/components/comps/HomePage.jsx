@@ -10,7 +10,7 @@ const HomePage = () => {
 
     const handleSubmit = () => {
         localStorage.setItem("username", JSON.stringify({username: usernameInput}));
-        navigate("/roomName");
+        navigate(`/${roomName}`);
     }
     
     return (
