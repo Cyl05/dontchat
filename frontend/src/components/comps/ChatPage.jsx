@@ -1,14 +1,18 @@
 import React from 'react';
 import socket from '../../socket.js';
-import { Box, Button, HStack, Input, Text, VStack } from '@chakra-ui/react';
+import { Button, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { useParams } from 'react-router-dom';
 import SenderMessage from './SenderMessage.jsx';
 import ReceiverMessage from './ReceiverMessage.jsx';
+import SettingsDialog from './Settings/SettingsDialog.jsx';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
     const [messages, setMessages] = React.useState([]);
     const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
+
+    const [userLimit, setUserLimit] = React.useState(2);
+    const [checked, setChecked] = React.useState(false);
 
     const { roomName } = useParams();
     socket.emit("connectRoom", roomName, username.username);
@@ -18,10 +22,14 @@ const ChatPage = () => {
             setMessages((prev) => [...prev, [userName, msg]]);
         });
 
+        socket.on("open settings", () => {
+            
+        });
+
         const handleBeforeUnload = () => {
             socket.emit("client-leaving", username.username, roomName);
             setTimeout(() => socket.disconnect(), 100); // Small delay to ensure event is sent
-        };        
+        };
 
         window.addEventListener("beforeunload", handleBeforeUnload);
 
@@ -44,16 +52,24 @@ const ChatPage = () => {
                     <Input w={'50%'} mr={5} onChange={(e) => setInputVal(e.target.value)} value={inputVal} />
                     <Button onClick={handleSubmit}>Send</Button>
                 </HStack>
-                <VStack w={'50%'}>
-                    <Text>{roomName}</Text>
-                    {messages.map((message) => {
-                        if (message[0] == username.username) {
-                            return <SenderMessage message={message[1]} sender={message[0]} />;
-                        } else {
-                            return <ReceiverMessage message={message[1]} sender={message[0]} />;
-                        }
-                    })}
-                </VStack>
+                <HStack w={'50%'}>
+                    <VStack w={'95%'}>
+                        <Text>{roomName}</Text>
+                        {messages.map((message) => {
+                            if (message[0] == username.username) {
+                                return <SenderMessage message={message[1]} sender={message[0]} />;
+                            } else {
+                                return <ReceiverMessage message={message[1]} sender={message[0]} />;
+                            }
+                        })}
+                    </VStack>
+                    <SettingsDialog
+                        userLimit={userLimit}
+                        setUserLimit={setUserLimit}
+                        checked={checked}
+                        setChecked={setChecked}
+                    />
+                </HStack>
             </VStack>
         </form>
     )

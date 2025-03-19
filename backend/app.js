@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { Server } from "socket.io";
 import { createServer } from "http";
+import { initialiseRoomSettings } from "./scripts.js";
 
 const app = express();
 app.use(cors());
@@ -27,6 +28,7 @@ io.on("connection", (socket) => {
         socket.join(roomId);
         if (!rooms[roomId]) {
             rooms[roomId] = new Set();
+            initialiseRoomSettings(io, roomId);
         }
         rooms[roomId].add(username);
     });
