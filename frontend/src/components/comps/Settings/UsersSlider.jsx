@@ -5,11 +5,11 @@ const UsersSlider = (props) => {
     return (
         <Slider.Root
             width="200px"
-            min={2}
+            min={1}
             max={8}
             step={1}
             value={[props.userLimit]}
-            onValueChange={(e) => props.setUserLimit(e.value)}
+            onValueChangeEnd={(e) => props.setUserLimit(e.value)}
         >
             <Slider.Control>
                 <Slider.Track>

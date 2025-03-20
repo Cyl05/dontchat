@@ -1,29 +1,42 @@
 import React from 'react';
 import socket from '../../socket.js';
 import { Button, HStack, Input, Text, VStack } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import SenderMessage from './SenderMessage.jsx';
 import ReceiverMessage from './ReceiverMessage.jsx';
 import SettingsDialog from './Settings/SettingsDialog.jsx';
+import { toaster } from '../ui/toaster.jsx';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
     const [messages, setMessages] = React.useState([]);
     const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
 
-    const [userLimit, setUserLimit] = React.useState(2);
+    const [userLimit, setUserLimit] = React.useState(1);
     const [checked, setChecked] = React.useState(false);
 
     const { roomName } = useParams();
+    const navigate = useNavigate();
     socket.emit("connectRoom", roomName, username.username);
+
+    React.useEffect(() => {
+        socket.emit("user limit", userLimit);
+    }, [userLimit]);
 
     React.useEffect(() => {
         socket.on("message", (msg, userName) => {
             setMessages((prev) => [...prev, [userName, msg]]);
         });
 
-        socket.on("open settings", () => {
-            
+        socket.on("room full", (user) => {
+            console.log(user);
+            if (user == username.username) {
+                navigate("/");
+                toaster.create({
+                    title: `Room is full`,
+                    type: "error",
+                });
+            }
         });
 
         const handleBeforeUnload = () => {
