@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { initialiseRoomSettings } from "./scripts.js";
 
 const app = express();
 app.use(cors());
@@ -17,44 +16,63 @@ const io = new Server(server, {
     }
 });
 
-let rooms = {};
-let userLimit = 1;
+let invitesAllowed = {};
+let owners = {};
+let members = {};
 
 io.on("connection", (socket) => {
-    socket.on("message", (msg, roomId, username) => {
-        io.to(roomId).emit('message', msg, username);
+    socket.on("message", (msg, roomName, username) => {
+        io.to(roomName).emit('message', msg, username);
     });
 
-    socket.on("connectRoom", (roomId, username) => {
-        socket.join(roomId);
-        if (!rooms[roomId]) {
-            rooms[roomId] = new Set();
-            rooms[roomId].add(username);
+    socket.on("connectRoom", (roomName, isOpen, username) => {
+        socket.join(roomName);
+
+        if (!members[roomName]) {
+            io.to(roomName).emit("kick out", username);
+        }
+
+        if (!invitesAllowed[roomName]) {
+            owners[roomName] = username;
+            invitesAllowed[roomName] = isOpen;
+        }
+        if (username == owners[roomName]) {
+            invitesAllowed[roomName] = isOpen;
+        }
+        io.to(roomName).emit("room owner", owners[roomName]);
+    });
+
+    socket.on("join request", (username, roomName) => {
+        socket.join("waiting");
+        if (!members[roomName]) {
+            members[roomName] = new Set([username]);
+            io.to("waiting").emit("join room", username, roomName);
+        }
+        if (invitesAllowed[roomName] == true) {
+            io.to(roomName).emit("requesting", username);
         } else {
-            if (rooms[roomId].size < userLimit && !rooms[roomId].has(username)) {
-                rooms[roomId].add(username);
-            } else if (!rooms[roomId].has(username)) {
-                io.to(roomId).emit("room full", username);
-            }
+            io.to("waiting").emit("join room", username, roomName);
         }
-        console.log(rooms);
     });
 
-    socket.on("user limit", (userInput, username, roomName) => {
-        const roomList = rooms[roomName];
-        if (username == [...roomList][0]) {
-            userLimit = userInput;
-        }
+    socket.on("accepted user", (username, roomName) => {
+        io.to("waiting").emit("join room", username, roomName);
+        members[roomName].add(username);
+    });
+
+    socket.on("rejected user", (username) => {
+        io.to("waiting").emit("reject user", username);
+    });
+
+    socket.on("duplicate name", (username) => {
+        io.to("waiting").emit("name already exists", username);
     });
 
     socket.on("client-leaving", (username, roomName) => {
-        console.log(`Leaving ${username} ${roomName}`);
-        if (rooms[roomName].has(username)) {
-            rooms[roomName].delete(username);
-        }
-        if (rooms[roomName].size == 0) {
-            delete rooms[roomName];
-        }
+        // rooms[roomName].delete(username);
+        // if (rooms[roomName].size == 0) {
+        //     delete rooms[roomName];
+        // }
     });
 });
 

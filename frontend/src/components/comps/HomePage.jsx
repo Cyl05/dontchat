@@ -1,6 +1,7 @@
 import { Button, Input, VStack } from '@chakra-ui/react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import socket from '../../socket';
 
 const HomePage = () => {
     const [usernameInput, setUsernameInput] = React.useState("");
@@ -10,7 +11,8 @@ const HomePage = () => {
 
     const handleSubmit = () => {
         localStorage.setItem("username", JSON.stringify({username: usernameInput}));
-        navigate(`/${roomName}`);
+        socket.emit("join request", usernameInput, roomName);
+        navigate("/waiting");
     }
     
     return (
