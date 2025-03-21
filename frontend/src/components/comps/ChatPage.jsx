@@ -1,30 +1,60 @@
 import React from 'react';
 import socket from '../../socket.js';
 import { Button, HStack, Input, Text, VStack } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import SenderMessage from './SenderMessage.jsx';
 import ReceiverMessage from './ReceiverMessage.jsx';
 import SettingsDialog from './Settings/SettingsDialog.jsx';
+import PendingInvites from './PendingInvites.jsx';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
     const [messages, setMessages] = React.useState([]);
     const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
+    const [isOwner, setIsOwner] = React.useState(false);
+    const [invites, setInvites] = React.useState([]);
 
     const [userLimit, setUserLimit] = React.useState(2);
-    const [checked, setChecked] = React.useState(false);
+    const [checked, setChecked] = React.useState(true);
 
     const { roomName } = useParams();
-    socket.emit("connectRoom", roomName, username.username);
+    const navigate = useNavigate();
+    socket.emit("connectRoom", roomName, checked, username.username);
+
+    const acceptInvite = (user) => {
+        setInvites(invites.filter(invite => invite != user));
+        socket.emit("accepted user", user, roomName);
+    };
+
+    const rejectInvite = (user) => {
+        setInvites(invites.filter(invite => invite != user));
+        socket.emit("rejected user", user);
+    }
 
     React.useEffect(() => {
         socket.on("message", (msg, userName) => {
             setMessages((prev) => [...prev, [userName, msg]]);
         });
 
-        socket.on("open settings", () => {
-            
+        socket.on("room owner", (owner) => {
+            if (owner == username.username) {
+                setIsOwner(true);
+            }
         });
+
+        socket.on("requesting", (user) => {
+            if (!invites.includes(user)) {
+                setInvites((prev) => [...prev, user]);
+            } else {
+                socket.emit("duplicate name", user);
+            }
+        });
+
+        socket.on("kick out", (user) => {
+            if (username.username == user) {
+                navigate("/");
+            }
+        })
 
         const handleBeforeUnload = () => {
             socket.emit("client-leaving", username.username, roomName);
@@ -63,12 +93,18 @@ const ChatPage = () => {
                             }
                         })}
                     </VStack>
-                    <SettingsDialog
-                        userLimit={userLimit}
-                        setUserLimit={setUserLimit}
-                        checked={checked}
-                        setChecked={setChecked}
-                    />
+                    {isOwner &&
+                    <VStack justify={'flex-start'}>
+                        
+                        <SettingsDialog
+                            userLimit={userLimit}
+                            setUserLimit={setUserLimit}
+                            checked={checked}
+                            setChecked={setChecked}
+                        />
+                        <PendingInvites invites={invites} acceptInvite={acceptInvite} rejectInvite={rejectInvite} />
+                    </VStack>
+                    }
                 </HStack>
             </VStack>
         </form>
