@@ -20,7 +20,7 @@ const ChatPage = () => {
     socket.emit("connectRoom", roomName, username.username);
 
     React.useEffect(() => {
-        socket.emit("user limit", userLimit);
+        socket.emit("user limit", userLimit, username.username, roomName);
     }, [userLimit]);
 
     React.useEffect(() => {

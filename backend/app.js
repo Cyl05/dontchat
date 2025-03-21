@@ -31,20 +31,24 @@ io.on("connection", (socket) => {
             rooms[roomId] = new Set();
             rooms[roomId].add(username);
         } else {
-            if (rooms[roomId].size < userLimit) {
-                console.log("Space available");
+            if (rooms[roomId].size < userLimit && !rooms[roomId].has(username)) {
                 rooms[roomId].add(username);
-            } else if(!rooms[roomId].has(username)) {
+            } else if (!rooms[roomId].has(username)) {
                 io.to(roomId).emit("room full", username);
             }
         }
+        console.log(rooms);
     });
 
-    socket.on("user limit", (userInput) => {
-        userLimit = userInput;
+    socket.on("user limit", (userInput, username, roomName) => {
+        const roomList = rooms[roomName];
+        if (username == [...roomList][0]) {
+            userLimit = userInput;
+        }
     });
 
     socket.on("client-leaving", (username, roomName) => {
+        console.log(`Leaving ${username} ${roomName}`);
         if (rooms[roomName].has(username)) {
             rooms[roomName].delete(username);
         }
