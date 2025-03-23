@@ -1,12 +1,14 @@
 import React from 'react';
 import socket from '../../socket.js';
-import { Button, HStack, Input, Text, VStack } from '@chakra-ui/react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Box, Button, Highlight, HStack, IconButton, Input, Text, VStack } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SenderMessage from './SenderMessage.jsx';
 import ReceiverMessage from './ReceiverMessage.jsx';
 import SettingsDialog from './Settings/SettingsDialog.jsx';
 import PendingInvites from './PendingInvites.jsx';
+import { AnimatedBackground } from 'animated-backgrounds';
+import { IoMdArrowBack } from 'react-icons/io';
+import { LightMode } from '../ui/color-mode.jsx';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
@@ -76,16 +78,54 @@ const ChatPage = () => {
         setInputVal("");
     }
 
+    const handleEnter = (e) => {
+        if (e.key == "Enter") {
+            e.preventDefault();
+            socket.emit("message", inputVal, roomName, username.username);
+            setInputVal("");
+        }
+    }
+
     return (
-        <form onSubmit={handleSubmit}>
-            <VStack>
-                <HStack mx={'auto'} justify={'center'} my={5} w={'100%'}>
-                    <Input w={'50%'} mr={5} onChange={(e) => setInputVal(e.target.value)} value={inputVal} />
-                    <Button onClick={handleSubmit}>Send</Button>
-                </HStack>
-                <HStack w={'50%'}>
-                    <VStack w={'95%'}>
-                        <Text>{roomName}</Text>
+        <Box justifyItems={'center'} alignContent={'center'} h={'100vh'}>
+            <Box w={'60%'} h={'100vh'} borderRadius={10} p={4} justifyItems={'center'} shadow={'sm'} border={'2px solid white'}>
+                <VStack w={'95%'} alignContent={'center'}>
+                    <Box
+                        w={'100%'}
+                        h={'7vh'}
+                        borderRadius={'md'}
+                        border={'2px solid white'}
+                        bgColor={'gray.500'}
+                        px={2}
+                        display={'flex'}
+                        alignItems={'center'}
+                        justifyContent={'space-between'}
+                        gap={4}
+                    >
+                        <LightMode>
+                            <IconButton variant={'subtle'} colorPalette={'gray'} onClick={() => navigate("/")}>
+                                <IoMdArrowBack />
+                            </IconButton>
+                        </LightMode>
+                        
+                        <Text textStyle={'xl'} color={'black'}>
+                            Room Name: {roomName}
+                        </Text>
+                        {isOwner ?
+                            <HStack justify={'flex-start'}>
+
+                                <SettingsDialog
+                                    userLimit={userLimit}
+                                    setUserLimit={setUserLimit}
+                                    checked={checked}
+                                    setChecked={setChecked}
+                                />
+                                <PendingInvites invites={invites} acceptInvite={acceptInvite} rejectInvite={rejectInvite} />
+                            </HStack>
+                            : <Box></Box>
+                        }
+                    </Box>
+                    <VStack h={'78vh'} w={'97%'} py={5}>
                         {messages.map((message) => {
                             if (message[0] == username.username) {
                                 return <SenderMessage message={message[1]} sender={message[0]} />;
@@ -94,22 +134,20 @@ const ChatPage = () => {
                             }
                         })}
                     </VStack>
-                    {isOwner &&
-                    <VStack justify={'flex-start'}>
-                        
-                        <SettingsDialog
-                            userLimit={userLimit}
-                            setUserLimit={setUserLimit}
-                            checked={checked}
-                            setChecked={setChecked}
+                    <HStack mx={'auto'} justify={'center'} my={5} w={'100%'}>
+                        <Input
+                            w={'90%'}
+                            mr={2}
+                            onChange={(e) => setInputVal(e.target.value)} value={inputVal} 
+                            border={'2px solid white'}
+                            onKeyDown={(e) => handleEnter(e)}
                         />
-                        <PendingInvites invites={invites} acceptInvite={acceptInvite} rejectInvite={rejectInvite} />
-                    </VStack>
-                    }
-                </HStack>
-            </VStack>
-        </form>
+                        <Button onClick={handleSubmit}>Send</Button>
+                    </HStack>
+                </VStack>
+            </Box>
+        </Box>
     )
 }
 
-export default ChatPage
+export default ChatPage;

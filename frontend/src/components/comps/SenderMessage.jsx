@@ -4,7 +4,7 @@ import React from 'react';
 const SenderMessage = (props) => {
   return (
     <HStack alignSelf={'flex-end'}>
-        <Box bgColor={'green'} p={3} borderRadius={5} maxW={'30rem'}>
+        <Box bgColor={'green.muted'} p={3} borderRadius={5} maxW={'30rem'}>
             <Text>{props.message}</Text>
         </Box>
         <AvatarGroup>
