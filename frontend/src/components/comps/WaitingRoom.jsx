@@ -7,13 +7,14 @@ const WaitingRoom = () => {
     const username = JSON.parse(localStorage.getItem("username"));
     const navigate = useNavigate();
 
-    React.useEffect(() => {
-        socket.on("join room", (user, roomName) => {
-            if (username.username == user) {
-                navigate(`/room/${roomName}`);
-            }
-        });
-        
+    socket.on("join room", (user, roomName) => {
+        console.log("joining room");
+        if (username.username == user) {
+            navigate(`/room/${roomName}`);
+        }
+    });
+    
+    React.useEffect(() => {        
         socket.on("reject user", (user) => {
             if (username.username == user) {
                 navigate("/");

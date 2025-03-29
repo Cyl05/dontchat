@@ -24,6 +24,11 @@ const ChatPage = () => {
     const navigate = useNavigate();
     socket.emit("connectRoom", roomName, checked, username.username);
 
+    const handleBeforeUnload = () => {
+        socket.emit("client-leaving", username.username, roomName);
+        setTimeout(() => socket.disconnect(), 100); // Small delay to ensure event is sent
+    };
+
     const acceptInvite = (user) => {
         setInvites(invites.filter(invite => invite != user));
         socket.emit("accepted user", user, roomName);
@@ -32,6 +37,11 @@ const ChatPage = () => {
     const rejectInvite = (user) => {
         setInvites(invites.filter(invite => invite != user));
         socket.emit("rejected user", user);
+    }
+
+    const backButtonClick = () => {
+        navigate("/");
+        handleBeforeUnload();
     }
 
     React.useEffect(() => {
@@ -57,14 +67,17 @@ const ChatPage = () => {
             if (username.username == user) {
                 navigate("/");
             }
-        })
+        });
 
-        const handleBeforeUnload = () => {
-            socket.emit("client-leaving", username.username, roomName);
-            setTimeout(() => socket.disconnect(), 100); // Small delay to ensure event is sent
-        };
+        socket.on("new owner", (user) => {
+            console.log("new owner");
+            if (username.user == user) {
+                setIsOwner(true);
+            }
+        });
 
-        window.addEventListener("beforeunload", handleBeforeUnload);
+        window.addEventListener("unload", handleBeforeUnload);
+        window.addEventListener("popstate", handleBeforeUnload);
 
         return () => {
             socket.off("message");
@@ -88,7 +101,15 @@ const ChatPage = () => {
 
     return (
         <Box justifyItems={'center'} alignContent={'center'} h={'100vh'}>
-            <Box w={'60%'} h={'100vh'} borderRadius={10} p={4} justifyItems={'center'} shadow={'sm'} border={'2px solid white'}>
+            <Box
+                w={'60%'}
+                h={'100vh'}
+                borderRadius={10}
+                p={4}
+                justifyItems={'center'}
+                shadow={'sm'}
+                border={'2px solid white'}
+            >
                 <VStack w={'95%'} alignContent={'center'}>
                     <Box
                         w={'100%'}
@@ -103,7 +124,7 @@ const ChatPage = () => {
                         gap={4}
                     >
                         <LightMode>
-                            <IconButton variant={'subtle'} colorPalette={'gray'} onClick={() => navigate("/")}>
+                            <IconButton variant={'subtle'} colorPalette={'gray'} onClick={backButtonClick}>
                                 <IoMdArrowBack />
                             </IconButton>
                         </LightMode>

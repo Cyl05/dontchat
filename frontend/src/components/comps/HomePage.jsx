@@ -10,6 +10,7 @@ const HomePage = () => {
     const navigate = useNavigate();
 
     const handleSubmit = () => {
+        console.log("AAAA");
         localStorage.setItem("username", JSON.stringify({username: usernameInput}));
         socket.emit("join request", usernameInput, roomName);
         navigate("/waiting");

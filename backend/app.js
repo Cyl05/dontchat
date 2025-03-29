@@ -21,12 +21,17 @@ let owners = {};
 let members = {};
 
 io.on("connection", (socket) => {
+    console.log(socket.id);
     socket.on("message", (msg, roomName, username) => {
         io.to(roomName).emit('message', msg, username);
     });
 
     socket.on("connectRoom", (roomName, isOpen, username) => {
         socket.join(roomName);
+
+        if (username == owners[roomName]) {
+            invitesAllowed[roomName] = isOpen;
+        }
 
         if (!members[roomName]) {
             io.to(roomName).emit("kick out", username);
@@ -36,21 +41,26 @@ io.on("connection", (socket) => {
             owners[roomName] = username;
             invitesAllowed[roomName] = isOpen;
         }
-        if (username == owners[roomName]) {
-            invitesAllowed[roomName] = isOpen;
-        }
         io.to(roomName).emit("room owner", owners[roomName]);
     });
 
     socket.on("join request", (username, roomName) => {
         socket.join("waiting");
-        if (!members[roomName]) {
-            members[roomName] = new Set([username]);
-            io.to("waiting").emit("join room", username, roomName);
-        }
+        io.in("waiting").fetchSockets().then((sockets) => {
+            sockets.forEach((socket) => {
+                console.log(`Socket ID: ${socket.id}`);
+            });
+        });
         if (invitesAllowed[roomName] == true) {
             io.to(roomName).emit("requesting", username);
         } else {
+            io.to("waiting").emit("join room", username, roomName);
+        }
+        if (!members[roomName]) {
+            members[roomName] = new Set([username]);
+            io.to("waiting").emit("join room", username, roomName);
+        } else if (members[roomName].size == 0) {
+            members[roomName].add(username);
             io.to("waiting").emit("join room", username, roomName);
         }
     });
@@ -69,10 +79,22 @@ io.on("connection", (socket) => {
     });
 
     socket.on("client-leaving", (username, roomName) => {
-        // rooms[roomName].delete(username);
-        // if (rooms[roomName].size == 0) {
-        //     delete rooms[roomName];
-        // }
+        socket.leave(roomName);
+        io.in(roomName).fetchSockets().then((sockets) => {
+            sockets.forEach((socket) => {
+                console.log(`Socket ID: ${socket.id}`);
+            });
+        });
+        members[roomName].delete(username);
+        const membersList = members[roomName];
+        if (membersList.size != 0) {
+            owners[roomName] = [...membersList][0];
+            io.to(roomName).emit("new owner", username);
+        } else {
+            owners[roomName] = null;
+        }
+        console.log(owners);
+        console.log(members);
     });
 });
 
