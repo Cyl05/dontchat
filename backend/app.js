@@ -45,29 +45,48 @@ io.on("connection", (socket) => {
     });
 
     socket.on("join request", (username, roomName) => {
+        console.log("Join request received: " + username + " " + roomName);
         socket.join("waiting");
-        io.in("waiting").fetchSockets().then((sockets) => {
-            sockets.forEach((socket) => {
-                console.log(`Socket ID: ${socket.id}`);
-            });
-        });
-        if (invitesAllowed[roomName] == true) {
+        
+        // Check if room doesn't exist in the members object
+        if (!members[roomName]) {
+            // Create new room and add first user
+            members[roomName] = new Set([username]);
+            owners[roomName] = username;
+            invitesAllowed[roomName] = false; // Default setting for new rooms
+            
+            console.log(`${username} joining ${roomName}`);
+            console.log("Current owners:", owners);
+            console.log("Current members:", members);
+            // Let user join immediately
+            io.to("waiting").emit("join room", username, roomName);
+            return;
+        }
+        
+        // If room exists but is empty (shouldn't happen if we clean up properly)
+        if (members[roomName].size === 0) {
+            members[roomName].add(username);
+            owners[roomName] = username;
+            io.to("waiting").emit("join room", username, roomName);
+            return;
+        }
+        
+        // For rooms with members, check permissions
+        if (invitesAllowed[roomName] === true) {
             io.to(roomName).emit("requesting", username);
         } else {
-            io.to("waiting").emit("join room", username, roomName);
-        }
-        if (!members[roomName]) {
-            members[roomName] = new Set([username]);
-            io.to("waiting").emit("join room", username, roomName);
-        } else if (members[roomName].size == 0) {
-            members[roomName].add(username);
-            io.to("waiting").emit("join room", username, roomName);
+            // Direct join request to the room owner
+            io.to(roomName).emit("requesting", username);
         }
     });
 
     socket.on("accepted user", (username, roomName) => {
         io.to("waiting").emit("join room", username, roomName);
         members[roomName].add(username);
+        
+        console.log(`${username} joining ${roomName}`);
+        console.log("Current owners:", owners);
+        console.log("Current members:", members);
     });
 
     socket.on("rejected user", (username) => {
@@ -80,21 +99,28 @@ io.on("connection", (socket) => {
 
     socket.on("client-leaving", (username, roomName) => {
         socket.leave(roomName);
-        io.in(roomName).fetchSockets().then((sockets) => {
-            sockets.forEach((socket) => {
-                console.log(`Socket ID: ${socket.id}`);
-            });
-        });
-        members[roomName].delete(username);
-        const membersList = members[roomName];
-        if (membersList.size != 0) {
-            owners[roomName] = [...membersList][0];
-            io.to(roomName).emit("new owner", username);
-        } else {
-            owners[roomName] = null;
+        
+        // Check if the room exists in members
+        if (members[roomName]) {
+            members[roomName].delete(username);
+            
+            // If the room is now empty
+            if (members[roomName].size === 0) {
+                // Clean up all room state
+                delete members[roomName];
+                delete owners[roomName];
+                delete invitesAllowed[roomName];
+                console.log("Room cleaned up:", roomName);
+            } else {
+                // Transfer ownership if needed
+                owners[roomName] = [...members[roomName]][0];
+                io.to(roomName).emit("new owner", username);
+            }
         }
-        console.log(owners);
-        console.log(members);
+
+        console.log(`${username} leaving ${roomName}`);
+        console.log("Current owners:", owners);
+        console.log("Current members:", members);
     });
 });
 

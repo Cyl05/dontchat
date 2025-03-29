@@ -26,7 +26,6 @@ const ChatPage = () => {
 
     const handleBeforeUnload = () => {
         socket.emit("client-leaving", username.username, roomName);
-        setTimeout(() => socket.disconnect(), 100); // Small delay to ensure event is sent
     };
 
     const acceptInvite = (user) => {
