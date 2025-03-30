@@ -24,6 +24,7 @@ const SettingsDialog = (props) => {
                                 setUserLimit={props.setUserLimit}
                                 checked={props.checked}
                                 setChecked={props.setChecked}
+                                disabled={props.disabled}
                             />
                         </Dialog.Body>
                         <Dialog.Footer>

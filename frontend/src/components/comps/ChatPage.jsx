@@ -1,6 +1,6 @@
 import React from 'react';
 import socket from '../../socket.js';
-import { Box, Button, Highlight, HStack, IconButton, Input, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Highlight, HStack, IconButton, Input, Separator, Text, VStack } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SenderMessage from './SenderMessage.jsx';
 import ReceiverMessage from './ReceiverMessage.jsx';
@@ -45,7 +45,7 @@ const ChatPage = () => {
 
     React.useEffect(() => {
         socket.on("message", (msg, userName) => {
-            setMessages((prev) => [...prev, [userName, msg]]);
+            setMessages((prev) => [...prev, [userName, msg, "message"]]);
         });
 
         socket.on("room owner", (owner) => {
@@ -69,10 +69,17 @@ const ChatPage = () => {
         });
 
         socket.on("new owner", (user) => {
-            console.log("new owner");
             if (username.user == user) {
                 setIsOwner(true);
             }
+        });
+
+        socket.on("send room join message", (user) => {
+            setMessages((prev) => [...prev, [user, null, "join"]]);
+        });
+
+        socket.on("send room leave message", (user, room) => {
+            setMessages((prev) => [...prev, [user, null, "leave"]]);
         });
 
         window.addEventListener("unload", handleBeforeUnload);
@@ -97,6 +104,7 @@ const ChatPage = () => {
             setInputVal("");
         }
     }
+
 
     return (
         <Box justifyItems={'center'} alignContent={'center'} h={'100vh'}>
@@ -127,30 +135,44 @@ const ChatPage = () => {
                                 <IoMdArrowBack />
                             </IconButton>
                         </LightMode>
-                        
+
                         <Text textStyle={'xl'} color={'black'}>
                             Room Name: {roomName}
                         </Text>
-                        {isOwner ?
-                            <HStack justify={'flex-start'}>
-
-                                <SettingsDialog
-                                    userLimit={userLimit}
-                                    setUserLimit={setUserLimit}
-                                    checked={checked}
-                                    setChecked={setChecked}
-                                />
+                        <HStack justify={'flex-start'}>
+                            <SettingsDialog
+                                userLimit={userLimit}
+                                setUserLimit={setUserLimit}
+                                checked={checked}
+                                setChecked={setChecked}
+                                disabled={!isOwner}
+                            />
+                            {isOwner ?
                                 <PendingInvites invites={invites} acceptInvite={acceptInvite} rejectInvite={rejectInvite} />
-                            </HStack>
-                            : <Box></Box>
-                        }
+                                : <Box></Box>
+                            }
+                        </HStack>
                     </Box>
                     <VStack h={'78vh'} w={'97%'} py={5}>
                         {messages.map((message) => {
-                            if (message[0] == username.username) {
-                                return <SenderMessage message={message[1]} sender={message[0]} />;
-                            } else {
-                                return <ReceiverMessage message={message[1]} sender={message[0]} />;
+                            if (message[2] === "message") {
+                                if (message[0] == username.username) {
+                                    return <SenderMessage message={message[1]} sender={message[0]} />;
+                                } else {
+                                    return <ReceiverMessage message={message[1]} sender={message[0]} />;
+                                }
+                            } else if (message[2] == "join") {
+                                return (
+                                    <Box px={2} py={1} bgColor={'white'} borderRadius={'full'}>
+                                        <Text color={'black'} fontSize={'sm'}>{message[0]} has joined the room</Text>
+                                    </Box>
+                                );
+                            } else if (message[2] == "leave") {
+                                return (
+                                    <Box px={2} py={1} bgColor={'white'} borderRadius={'full'}>
+                                        <Text color={'black'} fontSize={'sm'}>{message[0]} has left the room</Text>
+                                    </Box>
+                                );
                             }
                         })}
                     </VStack>
@@ -158,7 +180,7 @@ const ChatPage = () => {
                         <Input
                             w={'90%'}
                             mr={2}
-                            onChange={(e) => setInputVal(e.target.value)} value={inputVal} 
+                            onChange={(e) => setInputVal(e.target.value)} value={inputVal}
                             border={'2px solid white'}
                             onKeyDown={(e) => handleEnter(e)}
                         />

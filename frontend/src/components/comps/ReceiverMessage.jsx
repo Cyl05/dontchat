@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Box, HStack, Text } from '@chakra-ui/react';
+import { Avatar, AvatarGroup, Box, HStack, Text, VStack } from '@chakra-ui/react';
 import React from 'react';
 
 const ReceiverMessage = (props) => {
@@ -10,7 +10,12 @@ const ReceiverMessage = (props) => {
                 </Avatar.Root>
             </AvatarGroup>
             <Box bgColor={'green'} p={3} borderRadius={5} maxW={'30rem'}>
-                <Text>{props.message}</Text>
+                <VStack align={'flex-start'} gap={0}>
+                    <Box borderBottom={'1px solid gray'} w={'100%'}>
+                        <Text fontSize="sm" textAlign={'left'} color={'gray.400'}>{props.sender}</Text>
+                    </Box>
+                    <Text>{props.message}</Text>
+                </VStack>
             </Box>
         </HStack>
     )

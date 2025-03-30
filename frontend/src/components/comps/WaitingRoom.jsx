@@ -8,9 +8,9 @@ const WaitingRoom = () => {
     const navigate = useNavigate();
 
     socket.on("join room", (user, roomName) => {
-        console.log("joining room");
         if (username.username == user) {
             navigate(`/room/${roomName}`);
+            socket.emit("redirecting to new room", user, roomName);
         }
     });
     
