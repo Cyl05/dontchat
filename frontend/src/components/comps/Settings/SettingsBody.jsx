@@ -22,6 +22,7 @@ const SettingsBody = (props) => {
                 </>
             }
             <HStack justify={'space-between'}>
+                <MessageColorPicker color={props.color} setColor={props.setColor} />
             </HStack>
         </Box>
     )

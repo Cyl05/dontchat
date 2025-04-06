@@ -19,6 +19,7 @@ const ChatPage = () => {
 
     const [userLimit, setUserLimit] = React.useState(2);
     const [checked, setChecked] = React.useState(true);
+    const [color, setColor] = React.useState({bgColor: "white", color: "black"});
 
     const { roomName } = useParams();
     const navigate = useNavigate();
@@ -44,8 +45,14 @@ const ChatPage = () => {
     }
 
     React.useEffect(() => {
-        socket.on("message", (msg, userName) => {
-            setMessages((prev) => [...prev, [userName, msg, "message"]]);
+        socket.on("message", (msg, userName, msgBgColor, msgColor) => {
+            setMessages((prev) => [...prev, {
+                sender: userName, 
+                content: msg, 
+                type: "message",
+                bgColor: msgBgColor,
+                color: msgColor
+            }]);
         });
 
         socket.on("room owner", (owner) => {
@@ -75,11 +82,11 @@ const ChatPage = () => {
         });
 
         socket.on("send room join message", (user) => {
-            setMessages((prev) => [...prev, [user, null, "join"]]);
+            setMessages((prev) => [...prev, {sender: user, content: null, type:"join"}]);
         });
 
         socket.on("send room leave message", (user, room) => {
-            setMessages((prev) => [...prev, [user, null, "leave"]]);
+            setMessages((prev) => [...prev, {sender: user, content: null, type:"leave"}]);
         });
 
         window.addEventListener("unload", handleBeforeUnload);
@@ -93,14 +100,14 @@ const ChatPage = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        socket.emit("message", inputVal, roomName, username.username);
+        socket.emit("message", inputVal, roomName, username.username, color.bgColor, color.color);
         setInputVal("");
     }
 
     const handleEnter = (e) => {
         if (e.key == "Enter") {
             e.preventDefault();
-            socket.emit("message", inputVal, roomName, username.username);
+            socket.emit("message", inputVal, roomName, username.username, color.bgColor, color.color);
             setInputVal("");
         }
     }
@@ -146,6 +153,8 @@ const ChatPage = () => {
                                 checked={checked}
                                 setChecked={setChecked}
                                 disabled={!isOwner}
+                                color={color}
+                                setColor={setColor}
                             />
                             {isOwner ?
                                 <PendingInvites invites={invites} acceptInvite={acceptInvite} rejectInvite={rejectInvite} />
@@ -155,22 +164,36 @@ const ChatPage = () => {
                     </Box>
                     <VStack h={'78vh'} w={'97%'} py={5}>
                         {messages.map((message) => {
-                            if (message[2] === "message") {
-                                if (message[0] == username.username) {
-                                    return <SenderMessage message={message[1]} sender={message[0]} />;
+                            if (message.type === "message") {
+                                if (message.sender == username.username) {
+                                    return (
+                                        <SenderMessage 
+                                            message={message.content} 
+                                            sender={message.sender}
+                                            color={message.color}
+                                            bgColor={message.bgColor}
+                                        />
+                                    );
                                 } else {
-                                    return <ReceiverMessage message={message[1]} sender={message[0]} />;
+                                    return (
+                                        <ReceiverMessage 
+                                            message={message.content}
+                                            sender={message.sender} 
+                                            color={message.color}
+                                            bgColor={message.bgColor}
+                                        />
+                                    );
                                 }
-                            } else if (message[2] == "join") {
+                            } else if (message.type[2] == "join") {
                                 return (
                                     <Box px={2} py={1} bgColor={'white'} borderRadius={'full'}>
-                                        <Text color={'black'} fontSize={'sm'}>{message[0]} has joined the room</Text>
+                                        <Text color={'black'} fontSize={'sm'}>{message.sender} has joined the room</Text>
                                     </Box>
                                 );
-                            } else if (message[2] == "leave") {
+                            } else if (message.type == "leave") {
                                 return (
                                     <Box px={2} py={1} bgColor={'white'} borderRadius={'full'}>
-                                        <Text color={'black'} fontSize={'sm'}>{message[0]} has left the room</Text>
+                                        <Text color={'black'} fontSize={'sm'}>{message.sender} has left the room</Text>
                                     </Box>
                                 );
                             }

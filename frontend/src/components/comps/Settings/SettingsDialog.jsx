@@ -25,6 +25,8 @@ const SettingsDialog = (props) => {
                                 checked={props.checked}
                                 setChecked={props.setChecked}
                                 disabled={props.disabled}
+                                color={props.color}
+                                setColor={props.setColor}
                             />
                         </Dialog.Body>
                         <Dialog.Footer>

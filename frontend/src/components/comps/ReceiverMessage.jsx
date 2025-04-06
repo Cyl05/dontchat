@@ -9,12 +9,12 @@ const ReceiverMessage = (props) => {
                     <Avatar.Fallback name={props.sender} />
                 </Avatar.Root>
             </AvatarGroup>
-            <Box bgColor={'green'} p={3} borderRadius={5} maxW={'30rem'}>
+            <Box bgColor={props.bgColor} p={3} borderRadius={5} maxW={'30rem'}>
                 <VStack align={'flex-start'} gap={0}>
                     <Box borderBottom={'1px solid gray'} w={'100%'}>
                         <Text fontSize="sm" textAlign={'left'} color={'gray.400'}>{props.sender}</Text>
                     </Box>
-                    <Text>{props.message}</Text>
+                    <Text color={props.color}>{props.message}</Text>
                 </VStack>
             </Box>
         </HStack>
