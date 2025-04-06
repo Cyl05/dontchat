@@ -64,7 +64,7 @@ io.on("connection", (socket) => {
         if (invitesAllowed[roomName] === true) {
             io.to(roomName).emit("requesting", username);
         } else {
-            io.to(roomName).emit("requesting", username);
+            io.to("waiting").emit("join room", username, roomName);
         }
     });
 

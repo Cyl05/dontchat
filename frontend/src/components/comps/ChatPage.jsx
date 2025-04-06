@@ -9,6 +9,7 @@ import PendingInvites from './PendingInvites.jsx';
 import { AnimatedBackground } from 'animated-backgrounds';
 import { IoMdArrowBack } from 'react-icons/io';
 import { LightMode } from '../ui/color-mode.jsx';
+import { FaArrowDown } from 'react-icons/fa';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
@@ -18,7 +19,6 @@ const ChatPage = () => {
     const [invites, setInvites] = React.useState([]);
     const messagesEndRef = React.useRef(null);
 
-    const [userLimit, setUserLimit] = React.useState(2);
     const [checked, setChecked] = React.useState(true);
     const [color, setColor] = React.useState({bgColor: "white", color: "black"});
 
@@ -124,7 +124,7 @@ const ChatPage = () => {
 
 
     return (
-        <Box justifyItems={'center'} alignContent={'center'} h={'100vh'}>
+        <Box justifyItems={'center'} alignContent={'center'} h={'100vh'} position={'relative'}>
             <Box
                 w={'60%'}
                 h={'100vh'}
@@ -158,8 +158,6 @@ const ChatPage = () => {
                         </Text>
                         <HStack justify={'flex-start'}>
                             <SettingsDialog
-                                userLimit={userLimit}
-                                setUserLimit={setUserLimit}
                                 checked={checked}
                                 setChecked={setChecked}
                                 disabled={!isOwner}
@@ -172,7 +170,7 @@ const ChatPage = () => {
                             }
                         </HStack>
                     </Box>
-                    <VStack h={'78vh'} w={'97%'} py={5} overflow="auto">
+                    <VStack h={'70vh'} w={'97%'} py={5} overflow="auto" px={5} mt={2}>
                         {messages.map((message) => {
                             if (message.type === "message") {
                                 if (message.sender == username.username) {
@@ -211,7 +209,15 @@ const ChatPage = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </VStack>
-                    <HStack mx={'auto'} justify={'center'} my={5} w={'100%'}>
+                    <Button
+                        w={'97%'}
+                        variant={'outline'}
+                        onClick={scrollToBottom}
+                        my={2}
+                    >
+                        Scroll to Bottom
+                    </Button>
+                    <HStack mx={'auto'} justify={'center'} mb={5} mt={2} w={'97%'}>
                         <Input
                             w={'90%'}
                             mr={2}
@@ -222,6 +228,7 @@ const ChatPage = () => {
                         <Button onClick={handleSubmit}>Send</Button>
                     </HStack>
                 </VStack>
+                
             </Box>
         </Box>
     )
