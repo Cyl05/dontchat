@@ -22,7 +22,6 @@ let members = {};
 
 io.on("connection", (socket) => {
     socket.on("message", (msg, roomName, username, bgColor, color) => {
-        console.log(bgColor, color);
         io.to(roomName).emit('message', msg, username, bgColor, color);
     });
 

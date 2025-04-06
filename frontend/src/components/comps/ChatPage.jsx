@@ -16,6 +16,7 @@ const ChatPage = () => {
     const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
     const [isOwner, setIsOwner] = React.useState(false);
     const [invites, setInvites] = React.useState([]);
+    const messagesEndRef = React.useRef(null);
 
     const [userLimit, setUserLimit] = React.useState(2);
     const [checked, setChecked] = React.useState(true);
@@ -43,6 +44,14 @@ const ChatPage = () => {
         navigate("/");
         handleBeforeUnload();
     }
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    React.useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     React.useEffect(() => {
         socket.on("message", (msg, userName, msgBgColor, msgColor) => {
@@ -82,6 +91,7 @@ const ChatPage = () => {
         });
 
         socket.on("send room join message", (user) => {
+            console.log(`${user} joined`);
             setMessages((prev) => [...prev, {sender: user, content: null, type:"join"}]);
         });
 
@@ -162,7 +172,7 @@ const ChatPage = () => {
                             }
                         </HStack>
                     </Box>
-                    <VStack h={'78vh'} w={'97%'} py={5}>
+                    <VStack h={'78vh'} w={'97%'} py={5} overflow="auto">
                         {messages.map((message) => {
                             if (message.type === "message") {
                                 if (message.sender == username.username) {
@@ -184,7 +194,8 @@ const ChatPage = () => {
                                         />
                                     );
                                 }
-                            } else if (message.type[2] == "join") {
+                            } else if (message.type == "join") {
+                                console.log("yes he joined");
                                 return (
                                     <Box px={2} py={1} bgColor={'white'} borderRadius={'full'}>
                                         <Text color={'black'} fontSize={'sm'}>{message.sender} has joined the room</Text>
@@ -198,6 +209,7 @@ const ChatPage = () => {
                                 );
                             }
                         })}
+                        <div ref={messagesEndRef} />
                     </VStack>
                     <HStack mx={'auto'} justify={'center'} my={5} w={'100%'}>
                         <Input
