@@ -37,6 +37,7 @@ const ChatPage = () => {
 
     const rejectInvite = (user) => {
         setInvites(invites.filter(invite => invite != user));
+        console.log(user);
         socket.emit("rejected user", user);
     }
 
@@ -80,7 +81,8 @@ const ChatPage = () => {
 
         socket.on("kick out", (user) => {
             if (username.username == user) {
-                navigate("/");
+                socket.emit("join request", user, roomName);
+                navigate("/waiting");
             }
         });
 

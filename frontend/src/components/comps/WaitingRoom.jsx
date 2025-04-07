@@ -4,7 +4,7 @@ import socket from '../../socket';
 import { useNavigate } from 'react-router-dom';
 
 const WaitingRoom = () => {
-    const username = JSON.parse(localStorage.getItem("username"));
+    let username = JSON.parse(localStorage.getItem("username"));
     const navigate = useNavigate();
 
     socket.on("join room", (user, roomName) => {
@@ -21,9 +21,10 @@ const WaitingRoom = () => {
             }
         });
 
-        socket.on("name already exists", (user) => {
+        socket.on("change name", (user, newUserSuffix) => {
             if (username.username == user) {
-                navigate("/");
+                localStorage.setItem("username", JSON.stringify({username: `${username.username}${newUserSuffix}`}));
+                username = JSON.parse(localStorage.getItem("username"));
             }
         });
     });

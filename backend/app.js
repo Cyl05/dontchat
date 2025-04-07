@@ -45,19 +45,27 @@ io.on("connection", (socket) => {
 
     socket.on("join request", (username, roomName) => {
         socket.join("waiting");
+        const newNameSuffix = Math.floor(Math.random() * 100);
         
         if (!members[roomName]) {
             members[roomName] = new Set([username]);
             owners[roomName] = username;
             invitesAllowed[roomName] = false;
             io.to("waiting").emit("join room", username, roomName);
+            socket.leave("waiting");
             return;
+        } else {
+            if (members[roomName].has(username)) {
+                io.to("waiting").emit("change name", username, newNameSuffix);
+                username = `${username}${newNameSuffix}`;
+            }
         }
         
         if (members[roomName].size === 0) {
             members[roomName].add(username);
             owners[roomName] = username;
             io.to("waiting").emit("join room", username, roomName);
+            socket.leave("waiting");
             return;
         }
         
@@ -70,6 +78,7 @@ io.on("connection", (socket) => {
 
     socket.on("accepted user", (username, roomName) => {
         io.to("waiting").emit("join room", username, roomName);
+        socket.leave("waiting");
         members[roomName].add(username);
     });
 
