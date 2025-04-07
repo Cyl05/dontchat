@@ -10,11 +10,12 @@ import { AnimatedBackground } from 'animated-backgrounds';
 import { IoMdArrowBack } from 'react-icons/io';
 import { LightMode } from '../ui/color-mode.jsx';
 import { FaArrowDown } from 'react-icons/fa';
+import { adjectives, animals, uniqueNamesGenerator } from 'unique-names-generator';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
     const [messages, setMessages] = React.useState([]);
-    const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
+    let username = React.useState(JSON.parse(localStorage.getItem("username")));
     const [isOwner, setIsOwner] = React.useState(false);
     const [invites, setInvites] = React.useState([]);
     const messagesEndRef = React.useRef(null);
@@ -24,6 +25,11 @@ const ChatPage = () => {
 
     const { roomName } = useParams();
     const navigate = useNavigate();
+
+    if (!username) {
+        const randName = uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
+        localStorage.setItem("username", JSON.stringify({username: randName}));
+    }
     socket.emit("connectRoom", roomName, checked, username.username);
 
     const handleBeforeUnload = () => {

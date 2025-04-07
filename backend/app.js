@@ -34,6 +34,8 @@ io.on("connection", (socket) => {
 
         if (!members[roomName]) {
             io.to(roomName).emit("kick out", username);
+            socket.leave(roomName);
+            return;
         }
 
         if (!invitesAllowed[roomName]) {
@@ -47,7 +49,7 @@ io.on("connection", (socket) => {
         socket.join("waiting");
         const newNameSuffix = Math.floor(Math.random() * 100);
         
-        if (!members[roomName]) {
+        if (!members[roomName] || members[roomName].size === 0) {
             members[roomName] = new Set([username]);
             owners[roomName] = username;
             invitesAllowed[roomName] = false;
@@ -59,14 +61,6 @@ io.on("connection", (socket) => {
                 io.to("waiting").emit("change name", username, newNameSuffix);
                 username = `${username}${newNameSuffix}`;
             }
-        }
-        
-        if (members[roomName].size === 0) {
-            members[roomName].add(username);
-            owners[roomName] = username;
-            io.to("waiting").emit("join room", username, roomName);
-            socket.leave("waiting");
-            return;
         }
         
         if (invitesAllowed[roomName] === true) {
