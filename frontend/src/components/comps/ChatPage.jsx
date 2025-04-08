@@ -9,11 +9,12 @@ import PendingInvites from './PendingInvites.jsx';
 import { IoMdArrowBack } from 'react-icons/io';
 import { LightMode } from '../ui/color-mode.jsx';
 import { FaArrowDown } from 'react-icons/fa';
+import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
 
 const ChatPage = () => {
     const [inputVal, setInputVal] = React.useState("");
     const [messages, setMessages] = React.useState([]);
-    const [username, setUsername] = React.useState(JSON.parse(localStorage.getItem("username")));
+    let username = JSON.parse(localStorage.getItem("username"));
     const [isOwner, setIsOwner] = React.useState(false);
     const [invites, setInvites] = React.useState([]);
     const messagesEndRef = React.useRef(null);
@@ -23,6 +24,18 @@ const ChatPage = () => {
 
     const { roomName } = useParams();
     const navigate = useNavigate();
+
+    if (!username) {
+        const randName = uniqueNamesGenerator({ 
+            dictionaries: [adjectives, animals],
+            style: 'capital',
+            separator: ''
+        });
+        console.log(randName);
+        localStorage.setItem("username", JSON.stringify({username: randName}));
+        username = JSON.parse(localStorage.getItem("username"));
+    }
+
     socket.emit("connectRoom", roomName, checked, username.username);
 
     const handleBeforeUnload = () => {
