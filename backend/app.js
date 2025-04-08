@@ -16,7 +16,7 @@ const io = new Server(server, {
     }
 });
 
-let invitesAllowed = {};
+let roomOpen = {};
 let owners = {};
 let members = {};
 
@@ -29,16 +29,19 @@ io.on("connection", (socket) => {
         socket.join(roomName);
 
         if (username == owners[roomName]) {
-            invitesAllowed[roomName] = isOpen;
+            roomOpen[roomName] = isOpen;
         }
 
-        if (!members[roomName]) {
-            io.to(roomName).emit("kick out", username);
-        }
-
-        if (!invitesAllowed[roomName]) {
+        if (members[roomName] === undefined) {
+            members[roomName] = new Set([username]);
             owners[roomName] = username;
-            invitesAllowed[roomName] = isOpen;
+            roomOpen[roomName] = isOpen;
+        } else if (!members[roomName].has(username) && roomOpen[roomName] === false) {
+            io.to(roomName).emit("kick out", username);
+            socket.leave(roomName);
+            socket.join("waiting");
+            io.to(roomName).emit("requesting", username);
+            return;
         }
         io.to(roomName).emit("room owner", owners[roomName]);
     });
@@ -50,7 +53,7 @@ io.on("connection", (socket) => {
         if (!members[roomName]) {
             members[roomName] = new Set([username]);
             owners[roomName] = username;
-            invitesAllowed[roomName] = false;
+            roomOpen[roomName] = false;
             io.to("waiting").emit("join room", username, roomName);
             socket.leave("waiting");
             return;
@@ -69,7 +72,7 @@ io.on("connection", (socket) => {
             return;
         }
         
-        if (invitesAllowed[roomName] === true) {
+        if (roomOpen[roomName] === true) {
             io.to(roomName).emit("requesting", username);
         } else {
             io.to("waiting").emit("join room", username, roomName);
@@ -99,7 +102,7 @@ io.on("connection", (socket) => {
             if (members[roomName].size === 0) {
                 delete members[roomName];
                 delete owners[roomName];
-                delete invitesAllowed[roomName];
+                delete roomOpen[roomName];
             } else {
                 owners[roomName] = [...members[roomName]][0];
                 io.to(roomName).emit("new owner", username);
@@ -111,6 +114,10 @@ io.on("connection", (socket) => {
 
     socket.on("redirecting to new room", (username, roomName) => {
         socket.to(roomName).emit("send room join message", username);
+    });
+
+    socket.on("room open change", (isOpen, roomName) => {
+        roomOpen[roomName] = isOpen;
     });
 });
 

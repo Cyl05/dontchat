@@ -1,12 +1,11 @@
 import React from 'react';
 import socket from '../../socket.js';
-import { Box, Button, Highlight, HStack, IconButton, Input, Separator, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, HStack, IconButton, Input, Text, VStack } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SenderMessage from './SenderMessage.jsx';
 import ReceiverMessage from './ReceiverMessage.jsx';
 import SettingsDialog from './Settings/SettingsDialog.jsx';
 import PendingInvites from './PendingInvites.jsx';
-import { AnimatedBackground } from 'animated-backgrounds';
 import { IoMdArrowBack } from 'react-icons/io';
 import { LightMode } from '../ui/color-mode.jsx';
 import { FaArrowDown } from 'react-icons/fa';
@@ -55,6 +54,10 @@ const ChatPage = () => {
     }, [messages]);
 
     React.useEffect(() => {
+        socket.emit("room open change", checked, roomName);
+    }, [checked]);
+
+    React.useEffect(() => {
         socket.on("message", (msg, userName, msgBgColor, msgColor) => {
             setMessages((prev) => [...prev, {
                 sender: userName, 
@@ -66,6 +69,7 @@ const ChatPage = () => {
         });
 
         socket.on("room owner", (owner) => {
+            console.log("Room owner is " + owner);
             if (owner == username.username) {
                 setIsOwner(true);
             }
