@@ -12,7 +12,13 @@ const ReceiverMessage = (props) => {
             <Box bgColor={props.bgColor} p={3} borderRadius={5} maxW={'30rem'}>
                 <VStack align={'flex-start'} gap={0}>
                     <Box borderBottom={'1px solid gray'} w={'100%'}>
-                        <Text fontSize="sm" textAlign={'left'} color={'gray.400'}>{props.sender}</Text>
+                        <Text
+                            fontSize="sm"
+                            textAlign={'left'}
+                            color={props.color === "black" ? 'gray.800' : 'gray.400'}
+                        >
+                            {props.sender}
+                        </Text>
                     </Box>
                     <Text color={props.color}>{props.message}</Text>
                 </VStack>

@@ -220,8 +220,10 @@ const ChatPage = () => {
                         variant={'outline'}
                         onClick={scrollToBottom}
                         my={2}
+                        fontWeight={'bold'}
                     >
                         Scroll to Bottom
+                        <FaArrowDown />
                     </Button>
                     <HStack mx={'auto'} justify={'center'} mb={5} mt={2} w={'97%'}>
                         <Input
