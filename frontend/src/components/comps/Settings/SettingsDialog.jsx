@@ -29,12 +29,6 @@ const SettingsDialog = (props) => {
                                 setColor={props.setColor}
                             />
                         </Dialog.Body>
-                        <Dialog.Footer>
-                            {/* <Dialog.ActionTrigger asChild>
-                                <Button variant="outline">Cancel</Button>
-                            </Dialog.ActionTrigger> */}
-                            <Button>Save</Button>
-                        </Dialog.Footer>
                         <Dialog.CloseTrigger asChild>
                             <CloseButton size="sm" />
                         </Dialog.CloseTrigger>

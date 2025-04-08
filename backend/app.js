@@ -72,7 +72,7 @@ io.on("connection", (socket) => {
             return;
         }
         
-        if (roomOpen[roomName] === true) {
+        if (roomOpen[roomName] === false) {
             io.to(roomName).emit("requesting", username);
         } else {
             io.to("waiting").emit("join room", username, roomName);
