@@ -30,15 +30,9 @@ const WaitingRoom = () => {
     });
 
     return (
-        <AbsoluteCenter>
-            <ProgressCircle.Root value={null} size="sm">
-                <ProgressCircle.Circle>
-                    <ProgressCircle.Track />
-                    <ProgressCircle.Range />
-                </ProgressCircle.Circle>
-            </ProgressCircle.Root>
-            <Text ml={4} textAlign={'center'}>Waiting for host to let you in...</Text>
-        </AbsoluteCenter>
+        <VStack h={'100vh'} align={'center'} justify={'center'}>
+            <Text>Waiting for host to let you in...</Text>
+        </VStack>
     )
 }
 
