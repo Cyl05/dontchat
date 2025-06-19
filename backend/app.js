@@ -11,7 +11,10 @@ const port = 3000;
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: [
+            "http://localhost:5173",
+            "https://dontchat-cyl18.vercel.app/"
+        ],
         methods: ["GET", "POST"]
     }
 });
